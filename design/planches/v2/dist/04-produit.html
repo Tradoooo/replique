@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<title>Réplique — the product: the screen is the diagnosis</title>
+<style>/* Réplique V2 — "Relief blanc". One accent only: the cycle red of host/replique/view.py (C_CYCLE_STROKE). */
+:root {
+  --wall: #ecebe7;      /* page = the wall the relief is cast on (also read by relief.js) */
+  --plate: #f7f6f3;     /* raised white plate */
+  --ink: #111214;       /* titles, black */
+  --grey: #5b5f64;      /* body + second title line (AA on --wall, 5.5:1) */
+  --grey-l: #6e7277;    /* large text only (≥ 24 px, 4.1:1) */
+  --line: #d3d1cb;
+  --red: #c62828;       /* the ONLY accent: cycle, culprit, crash, not-verified */
+  --shadow: 18px 22px 44px rgba(60, 52, 40, .16), 4px 6px 12px rgba(60, 52, 40, .10), -10px -10px 30px rgba(255, 255, 255, .8);
+  --f-display: "Segoe UI Variable Display", "Segoe UI", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --f-body: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
+  --gut: clamp(16px, 4.4vw, 72px);
+  --ease: cubic-bezier(.2, .7, .1, 1);
+}
+/* Shared system V2. Light wall, giant tight type, one red, relief by light (left) and shade (right). */
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--wall); color: var(--ink); }
+body { margin: 0; background: var(--wall); font: 400 18px/1.55 var(--f-body); overflow-x: hidden; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--red); outline-offset: 4px; }
+.mono { font-family: var(--f-mono); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.wrap { padding-inline: var(--gut); max-width: 1560px; margin-inline: auto; }
+
+/* ---- chrome: no menu on screen. Wordmark + counter, badge, one vertical tab (single action) ---- */
+.top { position: absolute; z-index: 4; inset: 0 0 auto 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 26px var(--gut); pointer-events: none; }
+.top > * { pointer-events: auto; }
+.mark { font: 600 20px/1 var(--f-display); letter-spacing: -.03em; text-decoration: none; display: flex; gap: 14px; align-items: baseline; }
+.mark i { font: 400 16px/1 var(--f-mono); font-style: normal; color: var(--grey); letter-spacing: 0; }
+.badge { font: 400 16px/1.35 var(--f-mono); color: var(--grey); text-align: right; max-width: 30ch; }
+.tab { position: fixed; z-index: 6; right: 0; top: 50%; transform: translateY(-50%); writing-mode: vertical-rl; background: var(--ink); color: var(--wall); text-decoration: none; font: 600 16px/1 var(--f-mono); letter-spacing: .06em; padding: 22px 13px; border-radius: 10px 0 0 10px; }
+.tab:hover { background: var(--red); }
+
+/* ---- hero: the relief carries the message ---- */
+.hero { position: relative; height: 100vh; height: 100svh; min-height: 640px; overflow: hidden; }
+.hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hero .fallback { display: none; }
+.no-gl .hero .fallback { display: grid; position: absolute; inset: 0; place-items: center; }
+.hero-text { position: absolute; z-index: 2; left: var(--gut); right: var(--gut); bottom: clamp(28px, 6vh, 64px); display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 24px; }
+.mega { font: 600 clamp(64px, 11.2vw, 196px)/.84 var(--f-display); letter-spacing: -.065em; margin: 0; }
+.mega .g { color: var(--grey-l); display: block; }
+.mega .r { color: var(--red); }
+.h2 { font: 600 clamp(48px, 7vw, 124px)/.88 var(--f-display); letter-spacing: -.06em; margin: 0; }
+.h2 .g { color: var(--grey-l); display: block; }
+.h2 .r { color: var(--red); }
+.dash { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 22px 0 0; font: 400 clamp(18px, 1.5vw, 24px)/1.3 var(--f-display); letter-spacing: -.01em; color: var(--ink); list-style: none; padding: 0; }
+.dash li { display: flex; align-items: center; gap: 14px; }
+.dash li + li::before { content: ""; width: clamp(28px, 4vw, 72px); height: 1.5px; background: var(--ink); }
+.key { text-align: right; background: rgba(236, 235, 231, .9); padding: 16px 18px; border-radius: 16px; }
+.key strong { display: block; font: 600 clamp(44px, 4.6vw, 80px)/.9 var(--f-display); letter-spacing: -.05em; }
+.key span { display: block; font-size: 16px; color: var(--grey); margin-top: 8px; max-width: 26ch; margin-left: auto; }
+.cue { position: absolute; z-index: 2; left: 50%; bottom: 18px; transform: translateX(-50%); font: 400 16px/1 var(--f-mono); color: var(--grey); }
+
+/* ---- narrative sections ---- */
+.sec { padding: clamp(96px, 14vw, 220px) 0; }
+.sec + .sec { border-top: 1px solid var(--line); }
+.lead { font: 400 clamp(22px, 2vw, 32px)/1.3 var(--f-display); letter-spacing: -.02em; color: var(--grey); max-width: 30ch; margin: 28px 0 0; }
+.lead b { color: var(--ink); font-weight: 600; }
+.split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(32px, 6vw, 120px); align-items: start; }
+p { max-width: 62ch; }
+.body { color: var(--grey); }
+.plate { background: var(--plate); border-radius: 22px; box-shadow: var(--shadow); padding: clamp(20px, 2.4vw, 36px); min-width: 0; }
+.no { font: 400 16px/1 var(--f-mono); color: var(--grey); display: block; margin-bottom: 18px; }
+.rows { list-style: none; margin: 0; padding: 0; border-top: 1.5px solid var(--ink); }
+.rows > li { display: grid; grid-template-columns: minmax(80px, 1.2fr) minmax(0, 3fr) minmax(0, 4fr); gap: 24px; padding: 26px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
+.rows .n { font: 600 clamp(36px, 3.4vw, 60px)/1 var(--f-display); letter-spacing: -.05em; }
+.rows .t { font: 600 clamp(22px, 1.8vw, 30px)/1.1 var(--f-display); letter-spacing: -.03em; }
+.rows .d { color: var(--grey); font-size: 17px; }
+.rows code, .code { font: 400 16px/1.55 var(--f-mono); color: var(--ink); overflow-wrap: anywhere; }
+.term { font: 400 16px/1.65 var(--f-mono); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); margin: 0; }
+.term .r { color: var(--red); }
+.term .m { color: var(--grey); }
+.flag { font: 600 16px/1 var(--f-mono); white-space: nowrap; }
+.flag.no-ok { color: var(--red); }
+.flag.no-ok::before { content: "✕ "; }
+.flag.ok::before { content: "✓ "; }
+.flag.part::before { content: "◐ "; }
+
+/* ---- footer: the only navigation + SRC ---- */
+.src { padding: 72px 0; border-top: 1.5px solid var(--ink); }
+.src h2 { font: 600 16px/1 var(--f-mono); margin: 0 0 20px; }
+.src table { width: 100%; border-collapse: collapse; font-size: 16px; }
+.src th, .src td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.src th { color: var(--grey); font-weight: 400; }
+.src td:last-child { font-family: var(--f-mono); color: var(--grey); overflow-wrap: anywhere; }
+.src .note { color: var(--grey); margin-top: 18px; font-size: 16px; }
+.index { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); }
+.index a { text-decoration: none; padding: 26px 18px 30px 0; font: 600 clamp(22px, 2vw, 34px)/1 var(--f-display); letter-spacing: -.04em; color: var(--grey); }
+.index a i { display: block; font: 400 16px/1 var(--f-mono); font-style: normal; margin-bottom: 12px; letter-spacing: 0; color: var(--grey); }
+.index a[aria-current] { color: var(--ink); }
+.index a:hover { color: var(--red); }
+.colophon { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 24px; padding: 24px 0 40px; font: 400 16px/1.4 var(--f-mono); color: var(--grey); }
+
+/* ---- motion: reveal only; reduced-motion kills it (relief.js also stops the scene) ---- */
+.rv { opacity: 0; transform: translateY(26px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
+.rv.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .rv { opacity: 1; transform: none; }
+}
+
+@media (max-width: 900px) {
+  .split { grid-template-columns: 1fr; }
+  .hero-text { grid-template-columns: 1fr; }
+  .key { text-align: left; } .key span { margin-left: 0; }
+  .rows > li { grid-template-columns: 64px minmax(0, 1fr); }
+  .rows .d { grid-column: 2; }
+  .index { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  body { font-size: 17px; }
+  .top { padding: 18px 16px; }
+  .badge { max-width: 18ch; font-size: 16px; }
+  .mark i { display: none; }
+  .tab { display: none; }
+  .key { padding: 0; background: none; }
+  .cue { display: none; }
+  .hero { height: auto; min-height: 0; }
+  .hero canvas { position: relative; height: 48svh; margin-top: 76px; }
+  .hero-text { position: relative; left: 0; right: 0; bottom: auto; padding: 8px 16px 104px; }
+  .mega { font-size: clamp(60px, 19vw, 84px); }
+  .src table, .src tbody, .src tr, .src td { display: block; } .src thead { display: none; }
+  .src td { border: 0; padding: 2px 0; } .src tr { padding: 12px 0; border-bottom: 1px solid var(--line); }
+}
+
+.p4-hero { min-height: 100vh; min-height: 100svh; display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: clamp(28px, 5vw, 96px); align-items: end; padding: 120px var(--gut) clamp(40px, 7vh, 80px); position: relative; }
+.p4-shot { background: #fff; border-radius: 24px; box-shadow: var(--shadow); padding: 18px; transform: perspective(1400px) rotateY(-9deg) rotateX(3deg); align-self: center; }
+.p4-shot svg { display: block; width: 100%; height: auto; }
+.cap { font: 400 16px/1.4 var(--f-mono); color: var(--grey); margin: 12px 4px 0; }
+.p4-report h3 { font: 600 clamp(28px, 2.4vw, 40px)/1 var(--f-display); letter-spacing: -.04em; margin: 0 0 8px; }
+.p4-report h4 { font: 400 16px/1 var(--f-mono); color: var(--red); margin: 26px 0 8px; }
+.p4-report p, .p4-report li { color: var(--ink); margin: 4px 0; font-size: 17px; }
+.p4-report ul { padding-left: 20px; margin: 0; }
+.p4-report code { font: 400 16px/1.4 var(--f-mono); overflow-wrap: anywhere; }
+.p4-two { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 4vw, 64px); align-items: start; margin-top: 56px; }
+.p4-two .plate svg { display: block; width: 100%; height: auto; }
+.whatif { margin-top: 48px; }
+.whatif button { font: 600 16px/1 var(--f-mono); background: var(--ink); color: var(--wall); border: 0; border-radius: 999px; padding: 16px 22px; cursor: pointer; }
+.whatif button[aria-pressed="true"] { background: var(--red); }
+.whatif .term { margin-top: 22px; }
+.whatif .fork { color: var(--red); }
+.vga { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: clamp(24px, 4vw, 64px); align-items: center; margin-top: 56px; }
+.vga img { width: 100%; height: auto; display: block; border-radius: 16px; box-shadow: var(--shadow); image-rendering: pixelated; }
+@media (max-width: 1000px) { .p4-hero, .p4-two, .vga { grid-template-columns: 1fr; } .p4-shot { transform: none; } }
+</style>
+</head>
+<body data-page="04-produit">
+<header class="top"><a class="mark" href="01-comprendre.html">Réplique<i>04 / 05</i></a>
+  <p class="badge" data-badge>QNX Global Hackathon 2026 · Developer Tooling &amp; Host Tools</p></header>
+<a class="tab" href="05-preuves.html">Next — Proof →</a>
+<main id="main">
+<section class="p4-hero">
+  <div><h1 class="mega" style="font-size:clamp(56px,8.4vw,150px)">The screen<span class="g"><span class="r">is</span> the diagnosis.</span></h1>
+  <p class="lead">Not a mock-up: the self-contained SVG that <span class="mono">replique.cli view</span> writes for the deadlock fixture — <b>no font, no script, no network.</b></p></div>
+  <figure class="p4-shot" style="margin:0" data-real-svg><svg xmlns="http://www.w3.org/2000/svg" width="484" height="522" viewBox="0 0 484 522" role="img" aria-label="Graphe d'attente Réplique"><title>Graphe d'attente Réplique</title><desc>Un nœud par thread, une arête par attente de ressource. Les threads du cycle sont en rouge, le coupable est annoté.</desc><defs><marker id="arrow-dl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7c8d"/></marker></defs><rect x="0" y="0" width="484" height="522" fill="#ffffff"/><text x="36.0" y="24.0" font-family="sans-serif" font-size="17" fill="#1d2b36" font-weight="bold">Graphe d&apos;attente — Réplique</text><text x="36.0" y="38.0" font-family="sans-serif" font-size="11" fill="#55636f" font-weight="normal">2 thread(s) — 2 attente(s)</text><path d="M 242.0 142.0 Q 213.8 230.0 242.0 318.0" fill="none" stroke="#c62828" stroke-width="3" marker-end="url(#arrow-dl)"/><rect x="146.9" y="220.0" width="106.0" height="16" fill="#ffffff" fill-opacity="0.9"/><text x="150.9" y="232.0" font-family="sans-serif" font-size="11" fill="#55636f" font-weight="normal">res 32 · MUTEX</text><path d="M 242.0 318.0 Q 270.2 230.0 242.0 142.0" fill="none" stroke="#c62828" stroke-width="3" marker-end="url(#arrow-dl)"/><rect x="231.1" y="220.0" width="106.0" height="16" fill="#ffffff" fill-opacity="0.9"/><text x="235.1" y="232.0" font-family="sans-serif" font-size="11" fill="#55636f" font-weight="normal">res 16 · MUTEX</text><rect x="166.0" y="70.0" width="152" height="60" rx="9" ry="9" fill="#fdecec" stroke="#c62828" stroke-width="3"/><text x="178.0" y="90.0" font-family="sans-serif" font-size="13" fill="#1d2b36" font-weight="normal">tid 101</text><text x="178.0" y="106.0" font-family="sans-serif" font-size="13" fill="#55636f" font-weight="normal">BLOCKED</text><text x="178.0" y="122.0" font-family="sans-serif" font-size="13" fill="#55636f" font-weight="normal">prio eff 50</text><rect x="166.0" y="330.0" width="152" height="60" rx="9" ry="9" fill="#fdecec" stroke="#8e1b1b" stroke-width="4"/><text x="178.0" y="350.0" font-family="sans-serif" font-size="13" fill="#1d2b36" font-weight="normal">tid 102</text><text x="178.0" y="366.0" font-family="sans-serif" font-size="13" fill="#55636f" font-weight="normal">BLOCKED</text><text x="178.0" y="382.0" font-family="sans-serif" font-size="13" fill="#55636f" font-weight="normal">prio eff 60</text><text x="256.0" y="324.0" font-family="sans-serif" font-size="11" fill="#8e1b1b" font-weight="normal">CUPABLE</text><line x1="36" y1="426" x2="448" y2="426" stroke="#d7dee5" stroke-width="1"/><text x="36.0" y="446.0" font-family="sans-serif" font-size="12" fill="#1d2b36" font-weight="normal">Cycle d&apos;attente : 101 → 102 → 101</text><text x="36.0" y="464.0" font-family="sans-serif" font-size="12" fill="#1d2b36" font-weight="normal">Coupable : tid 102 — holds-resource-32-at-prio-60</text></svg><figcaption class="cap">host/replique/view.py → fixtures/deadlock.rkv1</figcaption></figure>
+  <span class="cue" aria-hidden="true">Scroll down</span>
+</section>
+<section class="sec"><div class="wrap">
+  <div class="split"><h2 class="h2 rv">One page.<span class="g">Not a dashboard.</span></h2>
+  <p class="lead rv">We show the real product screen rather than an architecture: the value is the moment a raw trace becomes <b>a cycle, a culprit and a replay hash</b> a reviewer can read.</p></div>
+  <div class="p4-two"><article class="plate p4-report rv" aria-label="Real one-page report, rendered">
+  <p class="cap" style="margin:0 0 18px">markdown_report.render() — real output, French as shipped</p>
+  <h3>Rapport Réplique — interblocage</h3>
+  <p class="body" style="font-size:16px">SHA-256 <code>e7850a8ba23d72a2…1261b59107</code> · 20 événements · SYNTHETIC</p>
+  <h4>Chaîne de blocage</h4>
+  <ul><li>tid 101 (prio 50) attend la ressource 32 (MUTEX), tenue par tid 102 ;</li><li>tid 102 (prio 60) attend la ressource 16 (MUTEX), tenue par tid 101.</li></ul>
+  <h4>Coupable</h4><p><b>tid 102</b> — <code>holds-resource-32-at-prio-60</code></p>
+  <h4>Rejeu</h4><p>FNV-1a 64 : <code data-proof="hashDl" data-src="scenarios/deadlock.json">17104745365914896697</code> — 3 décisions · conforme</p>
+  <h4>Recommandation</h4><p>Casser le cycle ; imposer un ordre global d'acquisition des verrous.</p>
+</article>
+    <figure class="plate rv" style="margin:0"><svg xmlns="http://www.w3.org/2000/svg" width="488" height="526" viewBox="0 0 488 526" role="img" aria-label="Graphe d'attente Réplique"><title>Graphe d'attente Réplique</title><desc>Un nœud par thread, une arête par attente de ressource. Les threads du cycle sont en rouge, le coupable est annoté.</desc><defs><marker id="arrow-pi" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7c8d"/></marker></defs><rect x="0" y="0" width="488" height="526" fill="#ffffff"/><text x="36.0" y="24.0" font-family="sans-serif" font-size="17" fill="#1d2b36" font-weight="bold">Graphe d&apos;attente — Réplique</text><text x="36.0" y="38.0" font-family="sans-serif" font-size="11" fill="#55636f" font-weight="normal">3 thread(s) — 0 attente(s)</text><rect x="168.0" y="70.0" width="152" height="60" rx="9" ry="9" fill="#e3f3e4" stroke="#46586b" stroke-width="2"/><text x="180.0" y="90.0" font-family="sans-serif" font-size="13" fill="#1d2b36" font-weight="normal">tid 201</text><text x="180.0" y="106.0" font-family="sans-serif" font-size="13" fill="#55636f" font-weight="normal">RUNNING</text><text x="180.0" y="122.0" font-family="sans-serif" font-size="13" fill="#55636f" font-weight="normal">prio eff 10</text><rect x="282.3" y="268.0" width="152" height="60" rx="9" ry="9" fill="#e6eefb" stroke="#46586b" stroke-width="2"/><text x="294.3" y="288.0" font-family="sans-serif" font-size="13" fill="#1d2b36" font-weight="normal">tid 202</text><text x="294.3" y="304.0" font-family="sans-serif" font-size="13" fill="#55636f" font-weight="normal">READY</text><text x="294.3" y="320.0" font-family="sans-serif" font-size="13" fill="#55636f" font-weight="normal">prio eff 100</text><rect x="53.7" y="268.0" width="152" height="60" rx="9" ry="9" fill="#ececec" stroke="#46586b" stroke-width="2"/><text x="65.7" y="288.0" font-family="sans-serif" font-size="13" fill="#1d2b36" font-weight="normal">tid 203</text><text x="65.7" y="304.0" font-family="sans-serif" font-size="13" fill="#55636f" font-weight="normal">DEAD</text><text x="65.7" y="320.0" font-family="sans-serif" font-size="13" fill="#55636f" font-weight="normal">prio eff 50</text><line x1="36" y1="430" x2="452" y2="430" stroke="#d7dee5" stroke-width="1"/><text x="36.0" y="450.0" font-family="sans-serif" font-size="12" fill="#1d2b36" font-weight="normal">Cycle d&apos;attente : aucun cycle détecté</text></svg><figcaption class="cap">view.py → fixtures/prio-inversion.rkv1, shown as-is: the graph draws the three threads but no inversion edge. The inversion lives in the verdict line: vd|code=PRIO_INVERSION chain=201,203,202.</figcaption></figure>
+  </div>
+</div></section>
+<section class="sec"><div class="wrap">
+  <div class="split"><h2 class="h2 rv">Same film.<span class="g">One priority changed.</span></h2>
+  <p class="lead rv">Real <span class="mono">dec|</span> lines for <span class="mono">fixtures/race.rkv1</span>. Pull the what-if and the second decision <b>forks</b> — so the hash changes.</p></div>
+  <div class="whatif plate rv">
+    <button type="button" data-whatif-btn aria-pressed="false">Pull the what-if: tid 402 → prio 20</button>
+    <pre class="term" data-run="base" aria-live="polite">dec|ts=1100|tid=401|reason=INITIAL
+dec|ts=1500|tid=402|reason=TIMER
+dec|ts=1700|tid=401|reason=TERMINATE
+hash=<span data-proof="hashRace" data-src="scenarios/race.json">6824083847162224150</span>  <span class="m">baseline</span></pre>
+    <pre class="term" data-run="whatif" hidden>dec|ts=1100|tid=401|reason=INITIAL
+<span class="fork">dec|ts=1400|tid=402|reason=WHATIF   ← forked</span>
+dec|ts=1700|tid=401|reason=TERMINATE
+<span class="fork">hash=<span data-proof="hashWhat" data-src="docs/PREUVE.md">1804713759432153825</span></span>  <span class="m">what-if 402=20</span></pre>
+  </div>
+</div></section>
+<section class="sec"><div class="wrap">
+  <div class="split"><h2 class="h2 rv">Real QNX 8.0<span class="g">guest, live.</span></h2>
+  <p class="lead rv">From the repo: the guest boots, <span class="mono">bug-deadlock</span> locks up, <span class="mono">slay</span> ends it, and <b>Déclic freezes the trace</b> and writes the archive.</p></div>
+  <div class="vga">
+    <img class="rv" src="data:image/png;base64,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" width="720" height="400" alt="QNX 8.0 guest console: threads 101 and 102 of bug-deadlock block on mutexes 32 and 16; Déclic observes termination, freezes the trace and writes a 13,721-byte archive with sections trace, pidin, slog2, core, manifest.">
+    <p class="body rv">This capture shows the earlier <b style="color:var(--ink)">five-section</b> archive (13,721 B). The current six-section archive, with the <span class="mono">rkv1</span> section converted on the target, weighs <b data-proof="archive" data-src="docs/PREUVE.md">16,137 B</b>.<br><span class="mono">docs/screenshots/invite-qnx800.png</span></p>
+  </div>
+</div></section>
+</main>
+<section class="src"><div class="wrap"><h2>SRC — every figure → its file · github.com/Tradoooo/replique @ df35def</h2>
+  <table><thead><tr><th>Value</th><th>What</th><th>Source file</th></tr></thead><tbody>
+  <tr><td>17104745365914896697</td><td>FNV-1a 64 replay hash, deadlock fixture</td><td>scenarios/deadlock.json</td></tr><tr><td>6824083847162224150</td><td>replay hash, race fixture (baseline)</td><td>scenarios/race.json</td></tr><tr><td>1804713759432153825</td><td>replay hash, race fixture with --whatif 402=20 (CLI run 2026-11-16 @ df35def)</td><td>docs/PREUVE.md</td></tr><tr><td>16,137 B</td><td>RDA1 archive frozen on the QNX 8.0 target, 6 sections</td><td>docs/PREUVE.md</td></tr><tr><td>SVG</td><td>verbatim output of replique.cli view — deadlock and prio-inversion fixtures</td><td>host/replique/view.py · fixtures/*.rkv1</td></tr><tr><td>report</td><td>markdown_report.render() on the deadlock fixture, abridged (SHA shortened)</td><td>host/replique/markdown_report.py · docs/REPORT-TEMPLATE.md</td></tr><tr><td>dec| lines</td><td>replique.cli replay fixtures/race.rkv1 [--whatif 402=20], run 2026-11-16 @ df35def</td><td>host/replique/cli.py · docs/PREUVE.md (X4)</td></tr><tr><td>13,721 B</td><td>five-section archive in the guest screenshot</td><td>docs/PREUVE.md · docs/screenshots/invite-qnx800.png</td></tr>
+  </tbody></table></div></section>
+<footer class="wrap"><nav class="index" aria-label="Planches"><a href="01-comprendre.html"><i>01</i>Overview</a><a href="02-probleme.html"><i>02</i>Problem</a><a href="03-pipeline.html"><i>03</i>Pipeline</a><a href="04-produit.html" aria-current="page"><i>04</i>Product</a><a href="05-preuves.html"><i>05</i>Proof</a></nav>
+  <div class="colophon"><span>Réplique · MIT · github.com/Tradoooo/replique</span><span>Design V2 · 2026-11-18 · self-contained, no network</span></div></footer>
+<script></script>
+<script>// Reveal-on-scroll + replay toggle. Reduced motion: everything visible at once.
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const rv = [...document.querySelectorAll('.rv')];
+  if (reduce || !('IntersectionObserver' in window)) rv.forEach(e => e.classList.add('in'));
+  else {
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -10% 0px' });
+    rv.forEach(e => io.observe(e));
+  }
+  // What-if toggle (P4): swaps baseline / what-if, state written in text, keyboard-operable.
+  const btn = document.querySelector('[data-whatif-btn]');
+  if (btn) btn.addEventListener('click', () => {
+    const on = btn.getAttribute('aria-pressed') !== 'true';
+    btn.setAttribute('aria-pressed', String(on));
+    document.querySelectorAll('[data-run]').forEach(el => { el.hidden = (el.dataset.run === 'whatif') !== on; });
+    btn.textContent = on ? 'Show baseline' : 'Pull the what-if: tid 402 → prio 20';
+  });
+})();
+</script>
+</body>
+</html>

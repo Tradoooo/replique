@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<title>Réplique — the problem: the evidence is overwritten</title>
+<style>/* Réplique V2 — "Relief blanc". One accent only: the cycle red of host/replique/view.py (C_CYCLE_STROKE). */
+:root {
+  --wall: #ecebe7;      /* page = the wall the relief is cast on (also read by relief.js) */
+  --plate: #f7f6f3;     /* raised white plate */
+  --ink: #111214;       /* titles, black */
+  --grey: #5b5f64;      /* body + second title line (AA on --wall, 5.5:1) */
+  --grey-l: #6e7277;    /* large text only (≥ 24 px, 4.1:1) */
+  --line: #d3d1cb;
+  --red: #c62828;       /* the ONLY accent: cycle, culprit, crash, not-verified */
+  --shadow: 18px 22px 44px rgba(60, 52, 40, .16), 4px 6px 12px rgba(60, 52, 40, .10), -10px -10px 30px rgba(255, 255, 255, .8);
+  --f-display: "Segoe UI Variable Display", "Segoe UI", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --f-body: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
+  --gut: clamp(16px, 4.4vw, 72px);
+  --ease: cubic-bezier(.2, .7, .1, 1);
+}
+/* Shared system V2. Light wall, giant tight type, one red, relief by light (left) and shade (right). */
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--wall); color: var(--ink); }
+body { margin: 0; background: var(--wall); font: 400 18px/1.55 var(--f-body); overflow-x: hidden; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--red); outline-offset: 4px; }
+.mono { font-family: var(--f-mono); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.wrap { padding-inline: var(--gut); max-width: 1560px; margin-inline: auto; }
+
+/* ---- chrome: no menu on screen. Wordmark + counter, badge, one vertical tab (single action) ---- */
+.top { position: absolute; z-index: 4; inset: 0 0 auto 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 26px var(--gut); pointer-events: none; }
+.top > * { pointer-events: auto; }
+.mark { font: 600 20px/1 var(--f-display); letter-spacing: -.03em; text-decoration: none; display: flex; gap: 14px; align-items: baseline; }
+.mark i { font: 400 16px/1 var(--f-mono); font-style: normal; color: var(--grey); letter-spacing: 0; }
+.badge { font: 400 16px/1.35 var(--f-mono); color: var(--grey); text-align: right; max-width: 30ch; }
+.tab { position: fixed; z-index: 6; right: 0; top: 50%; transform: translateY(-50%); writing-mode: vertical-rl; background: var(--ink); color: var(--wall); text-decoration: none; font: 600 16px/1 var(--f-mono); letter-spacing: .06em; padding: 22px 13px; border-radius: 10px 0 0 10px; }
+.tab:hover { background: var(--red); }
+
+/* ---- hero: the relief carries the message ---- */
+.hero { position: relative; height: 100vh; height: 100svh; min-height: 640px; overflow: hidden; }
+.hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hero .fallback { display: none; }
+.no-gl .hero .fallback { display: grid; position: absolute; inset: 0; place-items: center; }
+.hero-text { position: absolute; z-index: 2; left: var(--gut); right: var(--gut); bottom: clamp(28px, 6vh, 64px); display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 24px; }
+.mega { font: 600 clamp(64px, 11.2vw, 196px)/.84 var(--f-display); letter-spacing: -.065em; margin: 0; }
+.mega .g { color: var(--grey-l); display: block; }
+.mega .r { color: var(--red); }
+.h2 { font: 600 clamp(48px, 7vw, 124px)/.88 var(--f-display); letter-spacing: -.06em; margin: 0; }
+.h2 .g { color: var(--grey-l); display: block; }
+.h2 .r { color: var(--red); }
+.dash { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 22px 0 0; font: 400 clamp(18px, 1.5vw, 24px)/1.3 var(--f-display); letter-spacing: -.01em; color: var(--ink); list-style: none; padding: 0; }
+.dash li { display: flex; align-items: center; gap: 14px; }
+.dash li + li::before { content: ""; width: clamp(28px, 4vw, 72px); height: 1.5px; background: var(--ink); }
+.key { text-align: right; background: rgba(236, 235, 231, .9); padding: 16px 18px; border-radius: 16px; }
+.key strong { display: block; font: 600 clamp(44px, 4.6vw, 80px)/.9 var(--f-display); letter-spacing: -.05em; }
+.key span { display: block; font-size: 16px; color: var(--grey); margin-top: 8px; max-width: 26ch; margin-left: auto; }
+.cue { position: absolute; z-index: 2; left: 50%; bottom: 18px; transform: translateX(-50%); font: 400 16px/1 var(--f-mono); color: var(--grey); }
+
+/* ---- narrative sections ---- */
+.sec { padding: clamp(96px, 14vw, 220px) 0; }
+.sec + .sec { border-top: 1px solid var(--line); }
+.lead { font: 400 clamp(22px, 2vw, 32px)/1.3 var(--f-display); letter-spacing: -.02em; color: var(--grey); max-width: 30ch; margin: 28px 0 0; }
+.lead b { color: var(--ink); font-weight: 600; }
+.split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(32px, 6vw, 120px); align-items: start; }
+p { max-width: 62ch; }
+.body { color: var(--grey); }
+.plate { background: var(--plate); border-radius: 22px; box-shadow: var(--shadow); padding: clamp(20px, 2.4vw, 36px); min-width: 0; }
+.no { font: 400 16px/1 var(--f-mono); color: var(--grey); display: block; margin-bottom: 18px; }
+.rows { list-style: none; margin: 0; padding: 0; border-top: 1.5px solid var(--ink); }
+.rows > li { display: grid; grid-template-columns: minmax(80px, 1.2fr) minmax(0, 3fr) minmax(0, 4fr); gap: 24px; padding: 26px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
+.rows .n { font: 600 clamp(36px, 3.4vw, 60px)/1 var(--f-display); letter-spacing: -.05em; }
+.rows .t { font: 600 clamp(22px, 1.8vw, 30px)/1.1 var(--f-display); letter-spacing: -.03em; }
+.rows .d { color: var(--grey); font-size: 17px; }
+.rows code, .code { font: 400 16px/1.55 var(--f-mono); color: var(--ink); overflow-wrap: anywhere; }
+.term { font: 400 16px/1.65 var(--f-mono); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); margin: 0; }
+.term .r { color: var(--red); }
+.term .m { color: var(--grey); }
+.flag { font: 600 16px/1 var(--f-mono); white-space: nowrap; }
+.flag.no-ok { color: var(--red); }
+.flag.no-ok::before { content: "✕ "; }
+.flag.ok::before { content: "✓ "; }
+.flag.part::before { content: "◐ "; }
+
+/* ---- footer: the only navigation + SRC ---- */
+.src { padding: 72px 0; border-top: 1.5px solid var(--ink); }
+.src h2 { font: 600 16px/1 var(--f-mono); margin: 0 0 20px; }
+.src table { width: 100%; border-collapse: collapse; font-size: 16px; }
+.src th, .src td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.src th { color: var(--grey); font-weight: 400; }
+.src td:last-child { font-family: var(--f-mono); color: var(--grey); overflow-wrap: anywhere; }
+.src .note { color: var(--grey); margin-top: 18px; font-size: 16px; }
+.index { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); }
+.index a { text-decoration: none; padding: 26px 18px 30px 0; font: 600 clamp(22px, 2vw, 34px)/1 var(--f-display); letter-spacing: -.04em; color: var(--grey); }
+.index a i { display: block; font: 400 16px/1 var(--f-mono); font-style: normal; margin-bottom: 12px; letter-spacing: 0; color: var(--grey); }
+.index a[aria-current] { color: var(--ink); }
+.index a:hover { color: var(--red); }
+.colophon { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 24px; padding: 24px 0 40px; font: 400 16px/1.4 var(--f-mono); color: var(--grey); }
+
+/* ---- motion: reveal only; reduced-motion kills it (relief.js also stops the scene) ---- */
+.rv { opacity: 0; transform: translateY(26px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
+.rv.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .rv { opacity: 1; transform: none; }
+}
+
+@media (max-width: 900px) {
+  .split { grid-template-columns: 1fr; }
+  .hero-text { grid-template-columns: 1fr; }
+  .key { text-align: left; } .key span { margin-left: 0; }
+  .rows > li { grid-template-columns: 64px minmax(0, 1fr); }
+  .rows .d { grid-column: 2; }
+  .index { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  body { font-size: 17px; }
+  .top { padding: 18px 16px; }
+  .badge { max-width: 18ch; font-size: 16px; }
+  .mark i { display: none; }
+  .tab { display: none; }
+  .key { padding: 0; background: none; }
+  .cue { display: none; }
+  .hero { height: auto; min-height: 0; }
+  .hero canvas { position: relative; height: 48svh; margin-top: 76px; }
+  .hero-text { position: relative; left: 0; right: 0; bottom: auto; padding: 8px 16px 104px; }
+  .mega { font-size: clamp(60px, 19vw, 84px); }
+  .src table, .src tbody, .src tr, .src td { display: block; } .src thead { display: none; }
+  .src td { border: 0; padding: 2px 0; } .src tr { padding: 12px 0; border-bottom: 1px solid var(--line); }
+}
+
+.p2-ba { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 72px); margin-top: clamp(56px, 7vw, 110px); }
+.p2-ba h3 { font: 600 clamp(36px, 3.6vw, 60px)/.9 var(--f-display); letter-spacing: -.055em; margin: 0 0 26px; }
+.p2-ba h3 small { display: block; font: 400 16px/1 var(--f-mono); letter-spacing: 0; color: var(--grey); margin-bottom: 16px; }
+.p2-ba ol { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+.p2-ba li { counter-increment: s; display: grid; grid-template-columns: 48px minmax(0, 1fr); padding: 18px 0; border-top: 1px solid var(--line); color: var(--grey); }
+.p2-ba li::before { content: "0" counter(s); font: 400 16px/1.6 var(--f-mono); color: var(--ink); }
+.p2-ba li b { color: var(--ink); font-weight: 600; }
+.p2-ba .after { border-left: 1.5px solid var(--ink); padding-left: clamp(20px, 3vw, 48px); }
+.p2-people { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(24px, 4vw, 72px); }
+.p2-people q { display: block; font: 600 clamp(30px, 3vw, 50px)/1 var(--f-display); letter-spacing: -.05em; quotes: "“" "”"; margin: 0 0 20px; }
+.p2-pain { font: 600 clamp(56px, 9vw, 168px)/.86 var(--f-display); letter-spacing: -.07em; margin: 0; }
+.p2-pain .g { color: var(--grey-l); display: block; }
+.p2-pain .r { color: var(--red); }
+.h2 s { text-decoration-color: var(--red); text-decoration-thickness: .06em; }
+@media (max-width: 900px) { .p2-ba, .p2-people { grid-template-columns: 1fr; } .p2-ba .after { border-left: 0; padding-left: 0; border-top: 1.5px solid var(--ink); padding-top: 28px; } }
+</style>
+</head>
+<body data-page="02-probleme">
+<header class="top"><a class="mark" href="01-comprendre.html">Réplique<i>02 / 05</i></a>
+  <p class="badge" data-badge>QNX Global Hackathon 2026 · Developer Tooling &amp; Host Tools</p></header>
+<a class="tab" href="03-pipeline.html">Next — Pipeline →</a>
+<main id="main">
+<section class="hero"><canvas data-relief="ring" role="img" aria-label="A circular trace buffer in white relief. A write head sweeps around it; the red segment where the crash was recorded is overwritten when the head passes."></canvas><div class="fallback" aria-hidden="true"><svg viewBox="0 0 300 300" width="40%" aria-hidden="true"><circle cx="150" cy="150" r="110" fill="none" stroke="#f7f6f3" stroke-width="40"/><path d="M150 40a110 110 0 0 1 60 18" fill="none" stroke="#c62828" stroke-width="40"/></svg></div><span class="cue" aria-hidden="true">Scroll down</span>
+  <div class="hero-text"><div><h1 class="mega" style="font-size:clamp(60px,9.4vw,168px)">Once in a<span class="g">thousand <span class="r">runs.</span></span></h1><p class="lead" style="margin-top:22px">The kernel trace that saw the crash lives in a circular buffer — <b>and it keeps writing.</b></p></div><div class="key"><strong>1 / 1000</strong><span>“qu’une fois sur mille sur la cible” — README.md</span></div></div></section>
+<section class="sec"><div class="wrap">
+  <p class="no rv">02 — Who loses the evidence</p>
+  <div class="p2-people">
+    <article class="rv"><q>It never crashes when I watch.</q><p class="body"><b style="color:var(--ink)">QNX developer.</b> Re-reads multi-MB raw <span class="mono">traceprinter</span> output by hand, with no causality, hoping the deadlock comes back.</p></article>
+    <article class="rv"><q>Prove the root cause.</q><p class="body"><b style="color:var(--ink)">Certified integrator.</b> Must turn the failure into an ISO 26262 / IEC 62304 / EN 50128 root-cause argument — today with prose and screenshots.</p></article>
+  </div>
+  <p class="body rv" style="margin-top:40px">Roles as written in the specification (§1.1) — the repo names no individual. Hours or cost lost per incident: <b style="color:var(--red)">unknown</b> (not measured in the repo).</p>
+</div></section>
+<section class="sec"><div class="wrap">
+  <h2 class="h2 rv">Replay it<span class="g"><s>by luck</s> at will.</span></h2>
+  <div class="p2-ba">
+    <div class="rv"><h3><small>Before — by hand</small>Hope it happens again.</h3><ol>
+      <li><span>The circular buffer is <b>overwritten</b> before anyone looks.</span></li>
+      <li><span>Frozen <span class="mono">pidin</span> plus intuition — <b>no wait-for graph</b>.</span></li>
+      <li><span>Wait for the one-in-a-thousand run. <b>Again.</b></span></li></ol></div>
+    <div class="after rv"><h3><small>After — Réplique</small>Keep it forever.</h3><ol>
+      <li><span><b>Déclic</b> freezes the trace at termination: one <b data-proof="archive" data-src="docs/PREUVE.md">16,137 B</b> RDA1 archive, on the real QNX 8.0 target.</span></li>
+      <li><span><b>Autopsie</b> draws the cycle and names the culprit.</span></li>
+      <li><span><b>Réplique</b> replays it on a PC — <b data-proof="replays" data-src="docs/PREUVE.md">5 → 5</b> identical hashes.</span></li></ol></div>
+  </div>
+</div></section>
+<section class="sec"><div class="wrap">
+  <p class="p2-pain rv">The bug is not rare.<span class="g">The <span class="r">evidence</span> is.</span></p>
+  <p class="body rv" style="margin-top:36px">Linux has post-mortem and deterministic-replay tools (perf, rr). The specification states QNX has no equivalent — an absence claim the repo itself asks to re-check page by page (docs/GAP.md).</p>
+</div></section>
+</main>
+<section class="src"><div class="wrap"><h2>SRC — every figure → its file · github.com/Tradoooo/replique @ df35def</h2>
+  <table><thead><tr><th>Value</th><th>What</th><th>Source file</th></tr></thead><tbody>
+  <tr><td>16,137 B</td><td>RDA1 archive frozen on the QNX 8.0 target, 6 sections</td><td>docs/PREUVE.md</td></tr><tr><td>5 → 5</td><td>replays → identical hashes, C == Python, 6 fixtures</td><td>docs/PREUVE.md</td></tr><tr><td>1 / 1000</td><td>“qu’une fois sur mille sur la cible”</td><td>README.md (La promesse)</td></tr><tr><td>roles</td><td>QNX developer, certified integrator (+ safety engineer, CI team, trainer)</td><td>REPLIQUE-cahier-des-charges.md §1.1</td></tr><tr><td>perf, rr</td><td>Linux comparison — absence claim to re-check</td><td>REPLIQUE-cahier-des-charges.md §1.2 · docs/GAP.md</td></tr><tr><td>unknown</td><td>cost / hours per incident</td><td>not in repo</td></tr>
+  </tbody></table></div></section>
+<footer class="wrap"><nav class="index" aria-label="Planches"><a href="01-comprendre.html"><i>01</i>Overview</a><a href="02-probleme.html" aria-current="page"><i>02</i>Problem</a><a href="03-pipeline.html"><i>03</i>Pipeline</a><a href="04-produit.html"><i>04</i>Product</a><a href="05-preuves.html"><i>05</i>Proof</a></nav>
+  <div class="colophon"><span>Réplique · MIT · github.com/Tradoooo/replique</span><span>Design V2 · 2026-11-18 · self-contained, no network</span></div></footer>
+<script>// Relief — tiny raymarched WebGL scene, zero dependency, zero network.
+// White plaster objects on a white wall, key light from the LEFT, shade on the RIGHT (Flow Computing).
+// Scenes: 'links' = two interlocked rings (deadlock: 101 waits for 102 waits for 101), one red.
+//         'ring'  = circular trace buffer, segmented; a write head sweeps; the crash segment is red.
+// Exposes window.__relief = { ok, running } for verify.mjs.
+(() => {
+  const cv = document.querySelector('canvas[data-relief]');
+  window.__relief = { ok: false, running: false };
+  if (!cv) return;
+  const gl = cv.getContext('webgl', { antialias: false, preserveDrawingBuffer: true });
+  if (!gl) { document.documentElement.classList.add('no-gl'); return; }
+  const mode = cv.dataset.relief === 'ring' ? 1 : 0;
+  const VS = 'attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}';
+  const FS = `precision highp float;
+uniform vec2 R;uniform float T;uniform float M;uniform vec3 BG;
+mat2 rot(float a){float c=cos(a),s=sin(a);return mat2(c,-s,s,c);}
+float tor(vec3 p,vec2 t){vec2 q=vec2(length(p.xz)-t.x,p.y);return length(q)-t.y;}
+vec2 links(vec3 p){
+  p.xz*=rot(.35+.18*sin(T*.25));p.yz*=rot(-.25);
+  vec3 a=p-vec3(-.62,0.,0.);a.yz*=rot(1.5708);
+  vec3 b=p-vec3(.62,0.,0.);
+  float da=tor(a,vec2(.95,.26)),db=tor(b,vec2(.95,.26));
+  return da<db?vec2(da,1.):vec2(db,2.);}
+vec2 ring(vec3 p){
+  p.x-=.35;p.yz*=rot(-1.05);
+  float ang=atan(p.z,p.x);float seg=6.2832/24.;
+  float id=floor((ang+3.1416)/seg);
+  float head=mod(T*.55,6.2832)-3.1416;float hid=floor((head+3.1416)/seg);
+  float age=mod(hid-id+24.,24.);
+  float lift=.10*exp(-age*.6);
+  float m2=mod(ang+3.1416,seg);float a2=min(m2,seg-m2);
+  vec2 q=vec2(length(p.xz)-1.02,p.y-lift);
+  float d=max(abs(q.x)-.24,abs(q.y)-.11)-.045;
+  d=max(d,(.006-a2*.9));
+  float crash=step(abs(id-5.),.5)*step(5.,age);
+  return vec2(d,crash>.5?2.:1.);}
+vec2 map(vec3 p){
+  vec2 o=M<.5?links(p):ring(p);
+  float wall=p.z+1.35;
+  return wall<o.x?vec2(wall,0.):o;}
+vec3 nrm(vec3 p){vec2 e=vec2(.0015,0.);return normalize(vec3(map(p+e.xyy).x-map(p-e.xyy).x,map(p+e.yxy).x-map(p-e.yxy).x,map(p+e.yyx).x-map(p-e.yyx).x));}
+float shadow(vec3 o,vec3 d){float r=1.,t=.03;for(int i=0;i<36;i++){float h=map(o+d*t).x;r=min(r,9.*h/t);t+=clamp(h,.02,.25);if(r<.002||t>6.)break;}return clamp(r,0.,1.);}
+float ao(vec3 p,vec3 n){float o=0.,s=1.;for(int i=1;i<6;i++){float h=.06*float(i);o+=(h-map(p+n*h).x)*s;s*=.7;}return clamp(1.-2.2*o,0.,1.);}
+void main(){
+  vec2 uv=(gl_FragCoord.xy-.5*R)/R.y;
+  bool land=R.x>R.y*1.1;
+  vec3 ro=land?vec3(-1.05,-.15,8.2):vec3(0.,0.,7.2);
+  vec3 rd=normalize(vec3(uv,-1.9));
+  float t=0.;vec2 h=vec2(0.);
+  for(int i=0;i<120;i++){h=map(ro+rd*t);if(h.x<.0012||t>14.)break;t+=h.x*.9;}
+  vec3 col=BG;
+  if(t<14.){
+    vec3 p=ro+rd*t,n=nrm(p);
+    vec3 L=normalize(vec3(-.85,.55,.75));
+    float sh=shadow(p+n*.003,L);
+    float dif=max(dot(n,L),0.)*sh;
+    float a=mix(.55,1.,ao(p,n));
+    if(h.y<.5){gl_FragColor=vec4(pow(BG*(1.-.19*(1.-sh))*(.8+.2*a),vec3(1.)),1.);return;}
+    vec3 alb=h.y>1.5?vec3(.78,.16,.16):(h.y>.5?vec3(.97,.965,.95):BG*1.02);
+    float amb=.62+.38*n.y*.5+.2;
+    col=alb*(amb*a*.72+dif*.55);
+    float spec=pow(max(dot(reflect(-L,n),-rd),0.),24.)*.12*step(.5,h.y);
+    col+=spec;
+  }
+  col=pow(col,vec3(.92));
+  col=min(col,vec3(1.));
+  gl_FragColor=vec4(col,1.);}`;
+  const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
+  const pr = gl.createProgram();
+  gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS));
+  gl.linkProgram(pr); gl.useProgram(pr);
+  gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(pr, 'p'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const U = n => gl.getUniformLocation(pr, n);
+  const bg = getComputedStyle(document.documentElement).getPropertyValue('--wall').trim().match(/\w\w/g).map(x => parseInt(x, 16) / 255);
+  gl.uniform3f(U('BG'), bg[0], bg[1], bg[2]); gl.uniform1f(U('M'), mode);
+  const size = () => { const s = Math.min(1, 1280 / Math.max(cv.clientWidth, 1)); cv.width = Math.round(cv.clientWidth * s); cv.height = Math.round(cv.clientHeight * s); gl.viewport(0, 0, cv.width, cv.height); gl.uniform2f(U('R'), cv.width, cv.height); };
+  const draw = t => { gl.uniform1f(U('T'), t); gl.drawArrays(gl.TRIANGLES, 0, 3); };
+  size();
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  const still = 7.2; // frozen frame: write head just past the crash segment
+  draw(still); window.__relief.ok = true;
+  let raf = 0, t0 = performance.now(), visible = true;
+  const loop = now => { draw(still + (now - t0) / 1000); raf = requestAnimationFrame(loop); };
+  const sync = () => {
+    const go = !reduce.matches && visible;
+    if (go && !raf) { raf = requestAnimationFrame(loop); }
+    if (!go && raf) { cancelAnimationFrame(raf); raf = 0; draw(still); }
+    window.__relief.running = !!raf;
+  };
+  new IntersectionObserver(e => { visible = e[0].isIntersecting; sync(); }).observe(cv);
+  reduce.addEventListener('change', sync);
+  addEventListener('resize', () => { size(); draw(still); });
+  sync();
+})();
+</script>
+<script>// Reveal-on-scroll + replay toggle. Reduced motion: everything visible at once.
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const rv = [...document.querySelectorAll('.rv')];
+  if (reduce || !('IntersectionObserver' in window)) rv.forEach(e => e.classList.add('in'));
+  else {
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -10% 0px' });
+    rv.forEach(e => io.observe(e));
+  }
+  // What-if toggle (P4): swaps baseline / what-if, state written in text, keyboard-operable.
+  const btn = document.querySelector('[data-whatif-btn]');
+  if (btn) btn.addEventListener('click', () => {
+    const on = btn.getAttribute('aria-pressed') !== 'true';
+    btn.setAttribute('aria-pressed', String(on));
+    document.querySelectorAll('[data-run]').forEach(el => { el.hidden = (el.dataset.run === 'whatif') !== on; });
+    btn.textContent = on ? 'Show baseline' : 'Pull the what-if: tid 402 → prio 20';
+  });
+})();
+</script>
+</body>
+</html>

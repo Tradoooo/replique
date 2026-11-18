@@ -1,0 +1,27 @@
+[
+ {
+  "file": "01-comprendre.html",
+  "fail": [],
+  "line": "OK 01-comprendre.html | 1440x900 + 390x844 | 0 erreur JS | 0 requête externe | marque+slogan+badge | relief 3D « links » rendue | — étapes | 1 chiffres tracés"
+ },
+ {
+  "file": "02-probleme.html",
+  "fail": [],
+  "line": "OK 02-probleme.html | 1440x900 + 390x844 | 0 erreur JS | 0 requête externe | marque+badge | relief 3D « ring » rendue | — étapes | 2 chiffres tracés"
+ },
+ {
+  "file": "03-pipeline.html",
+  "fail": [],
+  "line": "OK 03-pipeline.html | 1440x900 + 390x844 | 0 erreur JS | 0 requête externe | marque+badge | sans 3D | 10 étapes | 2 chiffres tracés"
+ },
+ {
+  "file": "04-produit.html",
+  "fail": [],
+  "line": "OK 04-produit.html | 1440x900 + 390x844 | 0 erreur JS | 0 requête externe | marque+badge | sans 3D | — étapes | 4 chiffres tracés"
+ },
+ {
+  "file": "05-preuves.html",
+  "fail": [],
+  "line": "OK 05-preuves.html | 1440x900 + 390x844 | 0 erreur JS | 0 requête externe | marque+badge | sans 3D | — étapes | 15 chiffres tracés"
+ }
+]

@@ -1,0 +1,7 @@
+Figures: 21/21 retrouvés dans le dépôt (replique @ df35def)
+OK 01-comprendre.html | 1440x900 + 390x844 | 0 erreur JS | 0 requête externe | marque+slogan+badge | relief 3D « links » rendue | — étapes | 1 chiffres tracés
+OK 02-probleme.html | 1440x900 + 390x844 | 0 erreur JS | 0 requête externe | marque+badge | relief 3D « ring » rendue | — étapes | 2 chiffres tracés
+OK 03-pipeline.html | 1440x900 + 390x844 | 0 erreur JS | 0 requête externe | marque+badge | sans 3D | 10 étapes | 2 chiffres tracés
+OK 04-produit.html | 1440x900 + 390x844 | 0 erreur JS | 0 requête externe | marque+badge | sans 3D | — étapes | 4 chiffres tracés
+OK 05-preuves.html | 1440x900 + 390x844 | 0 erreur JS | 0 requête externe | marque+badge | sans 3D | — étapes | 15 chiffres tracés
+Contrôles : 0 erreur JS · 0 requête externe · WebGL rendu + figé en reduced-motion · aucun débordement 1440/390 · tout texte ≥ 16 px · contraste AA.

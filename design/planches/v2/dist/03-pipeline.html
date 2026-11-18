@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<title>Réplique — how it works: ten steps from target to verdict</title>
+<style>/* Réplique V2 — "Relief blanc". One accent only: the cycle red of host/replique/view.py (C_CYCLE_STROKE). */
+:root {
+  --wall: #ecebe7;      /* page = the wall the relief is cast on (also read by relief.js) */
+  --plate: #f7f6f3;     /* raised white plate */
+  --ink: #111214;       /* titles, black */
+  --grey: #5b5f64;      /* body + second title line (AA on --wall, 5.5:1) */
+  --grey-l: #6e7277;    /* large text only (≥ 24 px, 4.1:1) */
+  --line: #d3d1cb;
+  --red: #c62828;       /* the ONLY accent: cycle, culprit, crash, not-verified */
+  --shadow: 18px 22px 44px rgba(60, 52, 40, .16), 4px 6px 12px rgba(60, 52, 40, .10), -10px -10px 30px rgba(255, 255, 255, .8);
+  --f-display: "Segoe UI Variable Display", "Segoe UI", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --f-body: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
+  --gut: clamp(16px, 4.4vw, 72px);
+  --ease: cubic-bezier(.2, .7, .1, 1);
+}
+/* Shared system V2. Light wall, giant tight type, one red, relief by light (left) and shade (right). */
+*, *::before, *::after { box-sizing: border-box; }
+html { background: var(--wall); color: var(--ink); }
+body { margin: 0; background: var(--wall); font: 400 18px/1.55 var(--f-body); overflow-x: hidden; }
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--red); outline-offset: 4px; }
+.mono { font-family: var(--f-mono); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.wrap { padding-inline: var(--gut); max-width: 1560px; margin-inline: auto; }
+
+/* ---- chrome: no menu on screen. Wordmark + counter, badge, one vertical tab (single action) ---- */
+.top { position: absolute; z-index: 4; inset: 0 0 auto 0; display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 26px var(--gut); pointer-events: none; }
+.top > * { pointer-events: auto; }
+.mark { font: 600 20px/1 var(--f-display); letter-spacing: -.03em; text-decoration: none; display: flex; gap: 14px; align-items: baseline; }
+.mark i { font: 400 16px/1 var(--f-mono); font-style: normal; color: var(--grey); letter-spacing: 0; }
+.badge { font: 400 16px/1.35 var(--f-mono); color: var(--grey); text-align: right; max-width: 30ch; }
+.tab { position: fixed; z-index: 6; right: 0; top: 50%; transform: translateY(-50%); writing-mode: vertical-rl; background: var(--ink); color: var(--wall); text-decoration: none; font: 600 16px/1 var(--f-mono); letter-spacing: .06em; padding: 22px 13px; border-radius: 10px 0 0 10px; }
+.tab:hover { background: var(--red); }
+
+/* ---- hero: the relief carries the message ---- */
+.hero { position: relative; height: 100vh; height: 100svh; min-height: 640px; overflow: hidden; }
+.hero canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hero .fallback { display: none; }
+.no-gl .hero .fallback { display: grid; position: absolute; inset: 0; place-items: center; }
+.hero-text { position: absolute; z-index: 2; left: var(--gut); right: var(--gut); bottom: clamp(28px, 6vh, 64px); display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 24px; }
+.mega { font: 600 clamp(64px, 11.2vw, 196px)/.84 var(--f-display); letter-spacing: -.065em; margin: 0; }
+.mega .g { color: var(--grey-l); display: block; }
+.mega .r { color: var(--red); }
+.h2 { font: 600 clamp(48px, 7vw, 124px)/.88 var(--f-display); letter-spacing: -.06em; margin: 0; }
+.h2 .g { color: var(--grey-l); display: block; }
+.h2 .r { color: var(--red); }
+.dash { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin: 22px 0 0; font: 400 clamp(18px, 1.5vw, 24px)/1.3 var(--f-display); letter-spacing: -.01em; color: var(--ink); list-style: none; padding: 0; }
+.dash li { display: flex; align-items: center; gap: 14px; }
+.dash li + li::before { content: ""; width: clamp(28px, 4vw, 72px); height: 1.5px; background: var(--ink); }
+.key { text-align: right; background: rgba(236, 235, 231, .9); padding: 16px 18px; border-radius: 16px; }
+.key strong { display: block; font: 600 clamp(44px, 4.6vw, 80px)/.9 var(--f-display); letter-spacing: -.05em; }
+.key span { display: block; font-size: 16px; color: var(--grey); margin-top: 8px; max-width: 26ch; margin-left: auto; }
+.cue { position: absolute; z-index: 2; left: 50%; bottom: 18px; transform: translateX(-50%); font: 400 16px/1 var(--f-mono); color: var(--grey); }
+
+/* ---- narrative sections ---- */
+.sec { padding: clamp(96px, 14vw, 220px) 0; }
+.sec + .sec { border-top: 1px solid var(--line); }
+.lead { font: 400 clamp(22px, 2vw, 32px)/1.3 var(--f-display); letter-spacing: -.02em; color: var(--grey); max-width: 30ch; margin: 28px 0 0; }
+.lead b { color: var(--ink); font-weight: 600; }
+.split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(32px, 6vw, 120px); align-items: start; }
+p { max-width: 62ch; }
+.body { color: var(--grey); }
+.plate { background: var(--plate); border-radius: 22px; box-shadow: var(--shadow); padding: clamp(20px, 2.4vw, 36px); min-width: 0; }
+.no { font: 400 16px/1 var(--f-mono); color: var(--grey); display: block; margin-bottom: 18px; }
+.rows { list-style: none; margin: 0; padding: 0; border-top: 1.5px solid var(--ink); }
+.rows > li { display: grid; grid-template-columns: minmax(80px, 1.2fr) minmax(0, 3fr) minmax(0, 4fr); gap: 24px; padding: 26px 0; border-bottom: 1px solid var(--line); align-items: baseline; }
+.rows .n { font: 600 clamp(36px, 3.4vw, 60px)/1 var(--f-display); letter-spacing: -.05em; }
+.rows .t { font: 600 clamp(22px, 1.8vw, 30px)/1.1 var(--f-display); letter-spacing: -.03em; }
+.rows .d { color: var(--grey); font-size: 17px; }
+.rows code, .code { font: 400 16px/1.55 var(--f-mono); color: var(--ink); overflow-wrap: anywhere; }
+.term { font: 400 16px/1.65 var(--f-mono); white-space: pre-wrap; overflow-wrap: anywhere; color: var(--ink); margin: 0; }
+.term .r { color: var(--red); }
+.term .m { color: var(--grey); }
+.flag { font: 600 16px/1 var(--f-mono); white-space: nowrap; }
+.flag.no-ok { color: var(--red); }
+.flag.no-ok::before { content: "✕ "; }
+.flag.ok::before { content: "✓ "; }
+.flag.part::before { content: "◐ "; }
+
+/* ---- footer: the only navigation + SRC ---- */
+.src { padding: 72px 0; border-top: 1.5px solid var(--ink); }
+.src h2 { font: 600 16px/1 var(--f-mono); margin: 0 0 20px; }
+.src table { width: 100%; border-collapse: collapse; font-size: 16px; }
+.src th, .src td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+.src th { color: var(--grey); font-weight: 400; }
+.src td:last-child { font-family: var(--f-mono); color: var(--grey); overflow-wrap: anywhere; }
+.src .note { color: var(--grey); margin-top: 18px; font-size: 16px; }
+.index { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--line); }
+.index a { text-decoration: none; padding: 26px 18px 30px 0; font: 600 clamp(22px, 2vw, 34px)/1 var(--f-display); letter-spacing: -.04em; color: var(--grey); }
+.index a i { display: block; font: 400 16px/1 var(--f-mono); font-style: normal; margin-bottom: 12px; letter-spacing: 0; color: var(--grey); }
+.index a[aria-current] { color: var(--ink); }
+.index a:hover { color: var(--red); }
+.colophon { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px 24px; padding: 24px 0 40px; font: 400 16px/1.4 var(--f-mono); color: var(--grey); }
+
+/* ---- motion: reveal only; reduced-motion kills it (relief.js also stops the scene) ---- */
+.rv { opacity: 0; transform: translateY(26px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
+.rv.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .rv { opacity: 1; transform: none; }
+}
+
+@media (max-width: 900px) {
+  .split { grid-template-columns: 1fr; }
+  .hero-text { grid-template-columns: 1fr; }
+  .key { text-align: left; } .key span { margin-left: 0; }
+  .rows > li { grid-template-columns: 64px minmax(0, 1fr); }
+  .rows .d { grid-column: 2; }
+  .index { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 640px) {
+  body { font-size: 17px; }
+  .top { padding: 18px 16px; }
+  .badge { max-width: 18ch; font-size: 16px; }
+  .mark i { display: none; }
+  .tab { display: none; }
+  .key { padding: 0; background: none; }
+  .cue { display: none; }
+  .hero { height: auto; min-height: 0; }
+  .hero canvas { position: relative; height: 48svh; margin-top: 76px; }
+  .hero-text { position: relative; left: 0; right: 0; bottom: auto; padding: 8px 16px 104px; }
+  .mega { font-size: clamp(60px, 19vw, 84px); }
+  .src table, .src tbody, .src tr, .src td { display: block; } .src thead { display: none; }
+  .src td { border: 0; padding: 2px 0; } .src tr { padding: 12px 0; border-bottom: 1px solid var(--line); }
+}
+
+.p3-hero { min-height: 100vh; min-height: 100svh; display: grid; align-content: end; padding: 120px var(--gut) clamp(40px, 7vh, 80px); position: relative; }
+.p3-line { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); margin-top: clamp(40px, 6vh, 72px); border-top: 1.5px solid var(--ink); }
+.p3-line li { list-style: none; padding: 16px 10px 0 0; border-right: 1px solid var(--line); min-height: 120px; }
+.p3-line li:last-child { border-right: 0; }
+.p3-line b { display: block; font: 600 clamp(28px, 2.6vw, 44px)/1 var(--f-display); letter-spacing: -.05em; }
+.p3-line span { display: block; font: 600 16px/1.2 var(--f-display); margin-top: 10px; }
+.p3-line li[data-act="Explain"] b { color: var(--red); }
+.p3-acts { display: grid; grid-template-columns: 5fr 3fr 2fr; margin-top: 10px; font: 400 16px/1 var(--f-mono); color: var(--grey); }
+.p3-acts span { padding-top: 10px; }
+.p3-group { font: 400 16px/1 var(--f-mono); color: var(--grey); margin: 56px 0 14px; }
+.ribbon { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; margin-top: 48px; }
+.ribbon h3 { font: 600 clamp(36px, 3.4vw, 56px)/1 var(--f-display); letter-spacing: -.05em; margin: 0 0 14px; }
+@media (max-width: 1000px) { .p3-line { grid-template-columns: repeat(5, minmax(0, 1fr)); } .p3-line li { min-height: 96px; border-bottom: 1px solid var(--line); } .p3-acts { display: none; } .ribbon { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .p3-line { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+</head>
+<body data-page="03-pipeline">
+<header class="top"><a class="mark" href="01-comprendre.html">Réplique<i>03 / 05</i></a>
+  <p class="badge" data-badge>QNX Global Hackathon 2026 · Developer Tooling &amp; Host Tools</p></header>
+<a class="tab" href="04-produit.html">Next — Product →</a>
+<main id="main">
+<section class="p3-hero">
+  <h1 class="mega" style="font-size:clamp(60px,10vw,176px)">Target<span class="g">to verdict<span class="r">.</span></span></h1>
+  <ol class="p3-line" aria-label="The ten pipeline steps" style="padding:0"><li data-step="01" data-act="Freeze"><b>01</b><span>Capture</span></li><li data-step="02" data-act="Freeze"><b>02</b><span>Trigger</span></li><li data-step="03" data-act="Freeze"><b>03</b><span>Déclic</span></li><li data-step="04" data-act="Freeze"><b>04</b><span>Convert</span></li><li data-step="05" data-act="Freeze"><b>05</b><span>Archive RDA1</span></li><li data-step="06" data-act="Explain"><b>06</b><span>Read</span></li><li data-step="07" data-act="Explain"><b>07</b><span>Events</span></li><li data-step="08" data-act="Explain"><b>08</b><span>Autopsy</span></li><li data-step="09" data-act="Replay"><b>09</b><span>Replay</span></li><li data-step="10" data-act="Replay"><b>10</b><span>Verdict &amp; render</span></li></ol>
+  <div class="p3-acts" aria-hidden="true"><span>Freeze — QNX 8.0 target</span><span>Explain — host</span><span>Replay — host</span></div>
+  <span class="cue" aria-hidden="true">Scroll down</span>
+</section>
+<section class="sec"><div class="wrap">
+  <div class="split"><h2 class="h2 rv">File<span class="g">by file.</span></h2>
+  <p class="lead rv">Every name below is a real file or command in the repo. The C11 core has <b>no file I/O, no clock, no socket, no allocation</b>; the Python twin is stdlib-only and must produce the same bytes.</p></div>
+  <p class="p3-group">Freeze — on the QNX 8.0 target</p><ol class="rows"><li class="rv" data-row="01"><span class="n">01</span><span class="t">Capture</span><span class="d">Kernel trace runs into a circular buffer.<br><code>tracelogger -d1 -E -r -S 16M</code></span></li><li class="rv" data-row="02"><span class="n">02</span><span class="t">Trigger</span><span class="d">Process termination detected (/proc scan, 50 ms).<br><code>target/hook/ham_hook.c · target/hook/dumper_hook.c · declic_watch.c</code></span></li><li class="rv" data-row="03"><span class="n">03</span><span class="t">Déclic</span><span class="d">Stops the trace, fingerprints it, writes the manifest.<br><code>target/declic/declic_qnx.c · declic_portable.c · sha256_portable.c</code></span></li><li class="rv" data-row="04"><span class="n">04</span><span class="t">Convert</span><span class="d">.kev → RKV1 inside the guest, byte-identical to Python.<br><code>target/declic/kev_rkv1.c</code></span></li><li class="rv" data-row="05"><span class="n">05</span><span class="t">Archive RDA1</span><span class="d">Six correlated sections, one file.<br><code>trace + pidin + slog2 + core + manifest + rkv1</code></span></li></ol>
+  <p class="p3-group">Explain — on the host</p><ol class="rows"><li class="rv" data-row="06"><span class="n">06</span><span class="t">Read</span><span class="d">Decodes and checks against the official traceprinter.<br><code>host/replique/kev_reader.py · kev2rkv1.py · tests/differential_traceprinter.sh</code></span></li><li class="rv" data-row="07"><span class="n">07</span><span class="t">Events</span><span class="d">Normalised REPLIQUE_EV_* events.<br><code>core/src/kev.c · core/src/event.c</code></span></li><li class="rv" data-row="08"><span class="n">08</span><span class="t">Autopsy</span><span class="d">Wait-for graph, blocking chain, frozen culprit rule.<br><code>deadlock.c · culprit.c · inversion.c</code></span></li></ol>
+  <p class="p3-group">Replay — on the host</p><ol class="rows"><li class="rv" data-row="09"><span class="n">09</span><span class="t">Replay</span><span class="d">Deterministic scheduler model, FNV-1a 64 hash, --whatif TID=PRIO.<br><code>core/src/sched.c · core/src/replay.c</code></span></li><li class="rv" data-row="10"><span class="n">10</span><span class="t">Verdict &amp; render</span><span class="d">Canonical lines, one-page report, self-contained SVG.<br><code>verdict.c · report.c · markdown_report.py · view.py</code></span></li></ol>
+  <p class="body rv" style="margin-top:40px">Target: QNX 8.0 guest under QEMU, built with <span class="mono">qcc</span> (SDP 8.0). Host: any PC with gcc C11, Python 3.10 and make — <span class="mono">make test</span> needs no QNX, no target, no licence.</p>
+</div></section>
+<section class="sec"><div class="wrap">
+  <div class="split"><h2 class="h2 rv">ev — vd<span class="g">— hash.</span></h2>
+  <p class="lead rv">Real output of <span class="mono">replique.cli</span> on <span class="mono">fixtures/deadlock.rkv1</span>. C drivers and Python agree byte for byte: <b data-proof="diff" data-src="docs/PREUVE.md">40 · 0</b>.</p></div>
+  <div class="ribbon">
+    <div class="plate rv"><h3>ev|</h3><pre class="term">ev|ts=1000|pid=10|tid=102|class=THREAD_CREATE|sub=0|a=60|b=0|c=0
+ev|ts=1200|pid=10|tid=102|class=MUTEX_LOCK|sub=0|a=32|b=102|c=0
+ev|ts=1300|pid=10|tid=102|class=THREAD_STATE|sub=3|a=4|b=7|c=0</pre></div>
+    <div class="plate rv"><h3>vd|</h3><pre class="term"><span class="r">vd|code=DEADLOCK_FOUND</span>|sev=error|ts=1700|pid=0|tid=0|a=0|b=16|c=0|hash=0|chain=101,102|detail=cycle-detected
+<span class="r">vd|code=CULPRIT</span>|sev=error|ts=1700|pid=0|tid=102|a=0|b=32|c=0|hash=0|chain=101,102|detail=holds-resource-32-at-prio-60</pre></div>
+    <div class="plate rv"><h3>hash</h3><pre class="term">vd|code=REPLAY_DETERMINISTIC|sev=info|ts=0|pid=0|tid=0|a=0|b=0|c=0|hash=17104745365914896697|chain=|detail=decisions-3
+<span class="m">$ replique.cli replay deadlock.rkv1 --hash</span>
+hash=<span data-proof="hashDl" data-src="scenarios/deadlock.json">17104745365914896697</span></pre></div>
+  </div>
+</div></section>
+</main>
+<section class="src"><div class="wrap"><h2>SRC — every figure → its file · github.com/Tradoooo/replique @ df35def</h2>
+  <table><thead><tr><th>Value</th><th>What</th><th>Source file</th></tr></thead><tbody>
+  <tr><td>40 · 0</td><td>C↔Python comparisons · divergences</td><td>docs/PREUVE.md</td></tr><tr><td>17104745365914896697</td><td>FNV-1a 64 replay hash, deadlock fixture</td><td>scenarios/deadlock.json</td></tr><tr><td>10 steps</td><td>files under target/hook, target/declic, host/replique, core/src</td><td>README.md · docs/DESIGN.md · repo tree @ df35def</td></tr><tr><td>tracelogger flags</td><td>-d1 -E -r -f &lt;file&gt; -S 16M -s 0</td><td>docs/PREUVE.md (r630 table)</td></tr><tr><td>/proc, 50 ms</td><td>HAM gone in QNX 8 — termination via /proc polling</td><td>docs/PREUVE.md</td></tr><tr><td>ev| / vd| lines</td><td>CLI run on fixtures/deadlock.rkv1, 3 of 20 ev| lines shown verbatim</td><td>scenarios/deadlock.json · host/replique/cli.py</td></tr>
+  </tbody></table></div></section>
+<footer class="wrap"><nav class="index" aria-label="Planches"><a href="01-comprendre.html"><i>01</i>Overview</a><a href="02-probleme.html"><i>02</i>Problem</a><a href="03-pipeline.html" aria-current="page"><i>03</i>Pipeline</a><a href="04-produit.html"><i>04</i>Product</a><a href="05-preuves.html"><i>05</i>Proof</a></nav>
+  <div class="colophon"><span>Réplique · MIT · github.com/Tradoooo/replique</span><span>Design V2 · 2026-11-18 · self-contained, no network</span></div></footer>
+<script></script>
+<script>// Reveal-on-scroll + replay toggle. Reduced motion: everything visible at once.
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const rv = [...document.querySelectorAll('.rv')];
+  if (reduce || !('IntersectionObserver' in window)) rv.forEach(e => e.classList.add('in'));
+  else {
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { rootMargin: '0px 0px -10% 0px' });
+    rv.forEach(e => io.observe(e));
+  }
+  // What-if toggle (P4): swaps baseline / what-if, state written in text, keyboard-operable.
+  const btn = document.querySelector('[data-whatif-btn]');
+  if (btn) btn.addEventListener('click', () => {
+    const on = btn.getAttribute('aria-pressed') !== 'true';
+    btn.setAttribute('aria-pressed', String(on));
+    document.querySelectorAll('[data-run]').forEach(el => { el.hidden = (el.dataset.run === 'whatif') !== on; });
+    btn.textContent = on ? 'Show baseline' : 'Pull the what-if: tid 402 → prio 20';
+  });
+})();
+</script>
+</body>
+</html>

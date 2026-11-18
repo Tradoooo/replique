@@ -1,0 +1,16 @@
+/* Réplique V2 — "Relief blanc". One accent only: the cycle red of host/replique/view.py (C_CYCLE_STROKE). */
+:root {
+  --wall: #ecebe7;      /* page = the wall the relief is cast on (also read by relief.js) */
+  --plate: #f7f6f3;     /* raised white plate */
+  --ink: #111214;       /* titles, black */
+  --grey: #5b5f64;      /* body + second title line (AA on --wall, 5.5:1) */
+  --grey-l: #6e7277;    /* large text only (≥ 24 px, 4.1:1) */
+  --line: #d3d1cb;
+  --red: #c62828;       /* the ONLY accent: cycle, culprit, crash, not-verified */
+  --shadow: 18px 22px 44px rgba(60, 52, 40, .16), 4px 6px 12px rgba(60, 52, 40, .10), -10px -10px 30px rgba(255, 255, 255, .8);
+  --f-display: "Segoe UI Variable Display", "Segoe UI", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --f-body: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "Cascadia Mono", "JetBrains Mono", Consolas, monospace;
+  --gut: clamp(16px, 4.4vw, 72px);
+  --ease: cubic-bezier(.2, .7, .1, 1);
+}
